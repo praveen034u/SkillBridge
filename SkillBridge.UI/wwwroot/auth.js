@@ -28,3 +28,25 @@
 
     lock.show();
 };
+
+window.logoutAuth0 = (logoutUrl) => {
+    sessionStorage.removeItem("access_token");
+    sessionStorage.removeItem("id_token");
+    sessionStorage.removeItem("user_profile");
+    sessionStorage.clear();
+
+    // Redirect to Auth0 logout page
+    window.location.href = logoutUrl;
+};
+
+window.secureStorage = {
+    setItem: function (key, value) {
+        sessionStorage.setItem(key, value);
+    },
+    getItem: function (key) {
+        return sessionStorage.getItem(key);
+    },
+    removeItem: function (key) {
+        sessionStorage.removeItem(key);
+    }
+};

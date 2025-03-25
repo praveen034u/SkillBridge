@@ -57,11 +57,11 @@ else
     private async Task FetchUserProfile(string userId)
     {
         userId = "{userId}";
-		string roleId = "{roleId}";
+        string roleId = "{roleId}";
         var userProfile = await Http.GetFromJsonAsync<EmployeeProfile>($"/api/user/{userId}/{roleId}");
         if (userProfile != null)
         {
-            userName = userProfile.FullName;
+            userName = string.Format("{0}, { 1}",userProfile.Name.FirstName, userProfile.Name.LastName);
         }
     }
 

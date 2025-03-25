@@ -37,9 +37,9 @@ public class SecureStorageService
         return userId;
     }
 
-    public async Task<EmployeeProfile> GetUserProfileAsync(string userProfileJson)
+    public async Task<UserProfile> GetUserProfileAsync(string userProfileJson)
     {
-        return JsonSerializer.Deserialize<EmployeeProfile>(userProfileJson);
+        return new UserProfile() { EmployeeProfile = JsonSerializer.Deserialize<EmployeeProfile>(userProfileJson) };
 
     }
 }

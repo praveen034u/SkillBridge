@@ -27,12 +27,12 @@
                 <!-- Common Fields -->
                 <div class="mb-3">
                     <label class="form-label">Full Name</label>
-                    <InputText class="form-control" @bind-Value="userProfile.Name" required />
+                    <InputText class="form-control" @bind-Value="userProfile.EmployeeProfile.Name.FirstName" required />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Email</label>
-                    <InputText class="form-control" @bind-Value="userProfile.Email" required />
+                    <InputText class="form-control" @bind-Value="userProfile.EmployeeProfile.Email" required />
                 </div>
 
                 <!-- Employee-Specific Fields -->
@@ -40,24 +40,24 @@
                 {
                     <div class="mb-3">
                         <label class="form-label">Skills (comma-separated)</label>
-                        <InputText class="form-control" @bind-Value="userProfile.Skills" required />
+                        @* <InputText class="form-control" @bind-Value="userProfile.EmployeeProfile.Skills" required /> *@
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Experience (Years)</label>
-                        <InputNumber class="form-control" @bind-Value="userProfile.Experience" />
+                        <InputNumber class="form-control" @bind-Value="userProfile.EmployeeProfile.ExperienceLevel" />
                     </div>
                 } else if (UserRole == "Employer")
                 {
-                <div class="mb-3">
-                    <label class="form-label">Company Name</label>
-                    <InputText class="form-control" @bind-Value="userProfile.CompanyName" required />
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label">Company Name</label>
+                        <InputText class="form-control" @bind-Value="userProfile.EmployerProfile.CompanyName" required />
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Company Website</label>
-                    <InputText class="form-control" @bind-Value="userProfile.CompanyWebsite" />
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label">Company Website</label>
+                        <InputText class="form-control" @bind-Value="userProfile.EmployerProfile.CompanyWebsiteUrl" />
+                    </div>
                 }
 
                 <button type="submit" class="btn btn-primary w-100">Create Profile</button>
@@ -73,7 +73,7 @@
 
 @code {
     private string UserRole;
-    private UserProfile userProfile = new();
+    private UserProfile userProfile = new UserProfile() { EmployeeProfile= new EmployeeProfile(), EmployerProfile= new EmployerProfile()};
 
     private async Task SelectRole(string role)
     {
@@ -81,7 +81,7 @@
         userProfile.Role = role;
 
         // Fetch existing profile (if any)
-        var profileJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "user_profile");
+        var profileJson = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "user_profile");
         if (!string.IsNullOrEmpty(profileJson))
         {
             userProfile = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(profileJson);
@@ -117,15 +117,5 @@
         // }
     }
 
-    private class UserProfile
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public string Role { get; set; }
-        public string Skills { get; set; }  // Only for Employees
-        public int Experience { get; set; } // Only for Employees
-        public string CompanyName { get; set; } // Only for Employers
-        public string CompanyWebsite { get; set; } // Only for Employers
-    }
+
 }

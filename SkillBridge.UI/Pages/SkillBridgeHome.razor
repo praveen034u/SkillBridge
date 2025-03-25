@@ -159,4 +159,11 @@
 
       
     }
+
+    [JSInvokable]
+    public async static Task OnLogoutSuccess()
+    {
+        Console.WriteLine("User logged out successfully.");
+        _navigationManager.NavigateTo("/", forceLoad: true);
+    }
 }
