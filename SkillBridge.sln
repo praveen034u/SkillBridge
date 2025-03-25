@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.35706.149
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillBridge.UI", "..\SkillBridge.UI\SkillBridge.UI.csproj", "{E6C3687D-319D-477F-86FB-EA03755BCD6A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SkillBridge.UI", "SkillBridge.UI\SkillBridge.UI.csproj", "{1EADB3F3-73FE-48F8-81E3-02AF8EA66A9A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,12 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E6C3687D-319D-477F-86FB-EA03755BCD6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E6C3687D-319D-477F-86FB-EA03755BCD6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E6C3687D-319D-477F-86FB-EA03755BCD6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E6C3687D-319D-477F-86FB-EA03755BCD6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EADB3F3-73FE-48F8-81E3-02AF8EA66A9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EADB3F3-73FE-48F8-81E3-02AF8EA66A9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EADB3F3-73FE-48F8-81E3-02AF8EA66A9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EADB3F3-73FE-48F8-81E3-02AF8EA66A9A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {625FFD74-FB54-4685-B201-6EB898D8C2FD}
 	EndGlobalSection
 EndGlobal
