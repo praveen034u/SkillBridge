@@ -62,6 +62,9 @@
 
                     <div class="mb-3">
                         <label class="form-label">Upload Resume</label>
+
+                        @* todo for Jitendra  *@
+
                         @* <InputFile class="form-control" @bind-Value="userProfile.EmployeeProfile.Resume" required /> *@
                     </div>
 
@@ -251,6 +254,18 @@
     private void RemoveLocation(CompanyLocation companyLocation)
     {
         userProfile.EmployerProfile.CompanyLocations.Remove(companyLocation);
+    }
+
+    /// <summary>
+    /// if user approves the skills then consent will be true else we will set to false
+    /// </summary>
+    /// <param name="extractedSkillsFromPopup"></param>
+    /// <param name="userConsent"></param>
+    private void SetExtractedSkills(List<string> extractedSkillsFromPopup, bool userConsent)
+    { 
+		userProfile.EmployeeProfile.Skills = extractedSkillsFromPopup.Select(skill => new Skill { Name = skill }).ToList();
+
+        // close the popup
     }
 
 }
