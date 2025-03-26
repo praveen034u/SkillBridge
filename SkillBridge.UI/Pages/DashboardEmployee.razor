@@ -1,0 +1,104 @@
+﻿@page "/employee-dashboard"
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Skill Match Recommendations</PageTitle>
+
+<h3>Job Recommendations Based on Your Skills</h3>
+
+@if (isLoading)
+{
+    <p>Loading recommendations...</p>
+}
+else if (jobRecommendations == null || !jobRecommendations.Any())
+{
+    <p>No job recommendations available. Please update your profile to improve recommendations.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Job Title</th>
+                <th>Company</th>
+                <th>Location</th>
+                <th>Matching Score (%)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var recommendation in jobRecommendations)
+            {
+                <tr>
+                    <td>@recommendation.Job.Title</td>
+                    <td>@recommendation.Job.CompanyName</td>
+                    <td>@recommendation.Job.Location</td>
+                    <td>@recommendation.MatchingScore</td>
+                    <td>
+                        @if (!recommendation.HasApplied)
+                        {
+                            <button class="btn btn-primary btn-sm" @onclick="() => ApplyJob(recommendation)">Apply</button>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Applied</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert @alertClass mt-3">@message</div>
+}
+
+@code {
+    private List<JobRecommendation> jobRecommendations;
+    private bool isLoading = true;
+    private string message;
+    private string alertClass; // "alert-success" or "alert-danger"
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Call the API endpoint to get job recommendations.
+        jobRecommendations = await Http.GetFromJsonAsync<List<JobRecommendation>>("/api/ai/skills-matching");
+        isLoading = false;
+    }
+
+    private async Task ApplyJob(JobRecommendation recommendation)
+    {
+        // Call the API endpoint to apply for the job
+        var response = await Http.PostAsJsonAsync($"/api/jobs/{recommendation.Job.Id}/apply", new { jobId = recommendation.Job.Id });
+        if (response.IsSuccessStatusCode)
+        {
+            recommendation.HasApplied = true;
+            message = $"Successfully applied for {recommendation.Job.Title}.";
+            alertClass = "alert-success";
+        }
+        else
+        {
+            message = "Failed to apply for the job. Please try again later.";
+            alertClass = "alert-danger";
+        }
+    }
+
+    public class JobRecommendation
+    {
+        public Job Job { get; set; }
+        public int MatchingScore { get; set; } // Score in percentage (e.g., 85 means 85%)
+        public bool HasApplied { get; set; } // Indicates if the user has applied for the job
+    }
+
+    public class Job
+    {
+        public string Id { get; set; }
+        public string Title { get; set; }
+        public string CompanyName { get; set; }
+        public string Location { get; set; }
+        public DateTime PostedDate { get; set; }
+    }
+}
