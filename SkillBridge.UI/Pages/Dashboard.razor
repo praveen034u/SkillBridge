@@ -58,7 +58,7 @@ else
     {
         userId = "{userId}";
         string roleId = "{roleId}";
-        var userProfile = await Http.GetFromJsonAsync<EmployeeProfile>($"/api/user/{userId}/{roleId}");
+        var userProfile = await Http.GetFromJsonAsync<UserProfile>($"/api/user/{userId}/{roleId}");
         if (userProfile != null)
         {
             userName = string.Format("{0}, { 1}",userProfile.Name.FirstName, userProfile.Name.LastName);

@@ -2,6 +2,7 @@
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject SecureStorageService SecureStorage
 
 <PageTitle>Create Profile</PageTitle>
 
@@ -26,26 +27,84 @@
 
                 <!-- Common Fields -->
                 <div class="mb-3">
-                    <label class="form-label">Full Name</label>
-                    <InputText class="form-control" @bind-Value="userProfile.EmployeeProfile.Name.FirstName" required />
+                    <label class="form-label">First Name</label>
+                    <InputText class="form-control" @bind-Value="userProfile.Name.FirstName" required />
+                    <label class="form-label">Last Name</label>
+                    <InputText class="form-control" @bind-Value="userProfile.Name.LastName" required />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Email</label>
-                    <InputText class="form-control" @bind-Value="userProfile.EmployeeProfile.Email" required />
+                    <InputText class="form-control" @bind-Value="userProfile.Email" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Phone Number</label>
+                    <InputText class="form-control" @bind-Value="userProfile.PhoneNumber" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Street</label>
+                    <InputText class="form-control" @bind-Value="userProfile.Address.Street" />
+                    <label class="form-label">City</label>
+                    <InputText class="form-control" @bind-Value="userProfile.Address.City" />
+                    <label class="form-label">State</label>
+                    <InputText class="form-control" @bind-Value="userProfile.Address.State" />
+                    <label class="form-label">Zip Code</label>
+                    <InputText class="form-control" @bind-Value="userProfile.Address.ZipCode" />
+                    <label class="form-label">Country</label>
+                    <InputText class="form-control" @bind-Value="userProfile.Address.Country" />
                 </div>
 
                 <!-- Employee-Specific Fields -->
                 @if (UserRole == "Employee")
                 {
+
                     <div class="mb-3">
-                        <label class="form-label">Skills (comma-separated)</label>
-                        @* <InputText class="form-control" @bind-Value="userProfile.EmployeeProfile.Skills" required /> *@
+                        <label class="form-label">Upload Resume</label>
+                        <InputFile class="form-control" @bind-Value="userProfile.EmployeeProfile.Resume" required />
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Experience (Years)</label>
-                        <InputNumber class="form-control" @bind-Value="userProfile.EmployeeProfile.ExperienceLevel" />
+                        <label class="form-label">Years of Experience</label>
+                        <InputNumber class="form-control" @bind-Value="userProfile.EmployeeProfile.YearsOfExperience" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="mb-3">
+                            <label class="form-label">Skills</label>
+                            @foreach (var skill in userProfile.EmployeeProfile.Skills)
+                            {
+
+                                <div class="row mb-2">
+                                    <div class="col">
+                                        <label class="form-label">Skill Name</label>
+                                        <InputText class="form-control" @bind-Value="skill.Name" />
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label">Proficiency</label>
+                                        <InputNumber class="form-control" @bind-Value="skill.ProficiencyLevel" />
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <button type="button" class="btn btn-danger" @onclick="@(() => RemoveSkill(skill))">Remove</button>
+                                </div>
+                            }
+                            <div class="mb-2">
+                                <button type="button" class="btn btn-secondary" @onclick="AddSkill">Add Skill</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Certifications</label>
+
+                        <div class="mb-2">
+                            <InputText class="form-control" @bind-value="certifications" />
+                        </div>
+                        @*  <div class="mb-2">
+                            <button type="button" class="btn btn-secondary" @onclick="AddCertification">Add Certification</button>
+                        </div> *@
                     </div>
                 } else if (UserRole == "Employer")
                 {
@@ -57,6 +116,48 @@
                     <div class="mb-3">
                         <label class="form-label">Company Website</label>
                         <InputText class="form-control" @bind-Value="userProfile.EmployerProfile.CompanyWebsiteUrl" />
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="mb-3">
+                            <label class="form-label">Company Locations</label>
+                            @foreach (var companyLocation in userProfile.EmployerProfile.CompanyLocations)
+                            {
+
+                                <div class="row mb-2">
+                                    <div class="col">
+                                        <label class="form-label">Streat</label>
+                                        <InputText class="form-control" @bind-Value="companyLocation.Address" />
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label">City</label>
+                                        <InputNumber class="form-control" @bind-Value="companyLocation.City" />
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col">
+                                        <label class="form-label">State</label>
+                                        <InputText class="form-control" @bind-Value="companyLocation.State" />
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label">Country</label>
+                                        <InputNumber class="form-control" @bind-Value="companyLocation.Country" />
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col">
+                                        <label class="form-label">Zip Code</label>
+                                        <InputNumber class="form-control" @bind-Value="companyLocation.ZipCode" />
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <button type="button" class="btn btn-danger" @onclick="@(() => RemoveLocation(companyLocation))">Remove</button>
+                                </div>
+                            }
+                            <div class="mb-2">
+                                <button type="button" class="btn btn-secondary" @onclick="AddLocation">Add Skill</button>
+                            </div>
+                        </div>
                     </div>
                 }
 
@@ -75,18 +176,21 @@
     private string UserRole;
     private UserProfile userProfile = new UserProfile() { EmployeeProfile= new EmployeeProfile(), EmployerProfile= new EmployerProfile()};
 
+    private string certifications { get => string.Join(", ", userProfile.EmployeeProfile.Certifications); set => userProfile.EmployeeProfile.Certifications = value.Split(',').Select(c => c.Trim()).ToList(); }
+
     private async Task SelectRole(string role)
     {
         UserRole = role;
+
         userProfile.Role = role;
 
         // Fetch existing profile (if any)
-        var profileJson = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "user_profile");
-        if (!string.IsNullOrEmpty(profileJson))
-        {
-            userProfile = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(profileJson);
-            userProfile.Role = role;
-        }
+        // var profileJson = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "user_profile");
+        // if (!string.IsNullOrEmpty(profileJson))
+        // {
+        //     userProfile = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(profileJson);
+        //     userProfile.Role = role;
+        // }
     }
 
     private void ResetRole()
@@ -97,11 +201,23 @@
 
     private async Task SubmitProfile()
     {
-        Navigation.NavigateTo("/employee-dashboard", forceLoad: true);
+        SecureStorage.SetItemAsync("user_role", UserRole);
+        if (UserRole == "Employee")
+        {
+            Navigation.NavigateTo("/employee-dashboard", forceLoad: true);
+        }
+        else if (UserRole == "Employer")
+        {
+            Navigation.NavigateTo("/employer-dashboard", forceLoad: true);
+        }
+        else
+        {
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
 
         // var accessToken = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "access_token");
 
-        // var response = await Http.PostAsJsonAsync("/api/profile", userProfile);
+        //var response = await Http.PostAsJsonAsync("/api/profile", userProfile);
         // if (response.IsSuccessStatusCode)
         // {
         //     await JSRuntime.InvokeVoidAsync("localStorage.setItem", "user_profile", System.Text.Json.JsonSerializer.Serialize(userProfile));
@@ -117,5 +233,24 @@
         // }
     }
 
+    private void AddSkill()
+    {
+        userProfile.EmployeeProfile.Skills.Add(new Skill());
+    }
+
+    private void RemoveSkill(Skill skill)
+    {
+        userProfile.EmployeeProfile.Skills.Remove(skill);
+    }
+
+    private void AddLocation()
+    {
+        userProfile.EmployerProfile.CompanyLocations.Add(new CompanyLocation());
+    }
+
+    private void RemoveLocation(CompanyLocation companyLocation)
+    {
+        userProfile.EmployerProfile.CompanyLocations.Remove(companyLocation);
+    }
 
 }

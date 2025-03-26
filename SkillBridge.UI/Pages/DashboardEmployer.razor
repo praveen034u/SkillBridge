@@ -1,7 +1,125 @@
 ﻿@page "/employer-dashboard"
 
-<h3>DashboardEmployer</h3>
+@using System.Net.Http.Json
+
+<h3>Posted Jobs</h3>
+
+@if (jobs == null)
+{
+    <p>Loading jobs...</p>
+}
+else if (!jobs.Any())
+{
+    <p>No jobs posted yet.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Company</th>
+                <th>Location</th>
+                <th>Employment Type</th>
+                <th>Posted Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var job in jobs)
+            {
+                <tr>
+                    <td>@job.Title</td>
+                    <td>@job.CompanyName</td>
+                    <td>@job.Location</td>
+                    <td>@job.EmploymentType</td>
+                    <td>@job.PostedDate.ToShortDateString()</td>
+                    <td>
+                        <span class="badge @(job.IsActive ? "bg-success" : "bg-danger")">
+                            @(job.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn @(job.IsActive ? "btn-danger" : "btn-success") btn-sm"
+                                @onclick="() => ToggleJobStatus(job)">
+                            @(job.IsActive ? "Disable" : "Enable")
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 
 @code {
+    private List<Job> jobs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadJobs();
+    }
+
+    private async Task LoadJobs()
+    {
+        // TODO: Replace with actual API call
+        //jobs = await Http.GetFromJsonAsync<List<Job>>("https://yourapi.com/jobs") ?? MockJobs();
+        jobs = MockJobs();
+    }
+
+    private async Task ToggleJobStatus(Job job)
+    {
+        job.IsActive = !job.IsActive;
+
+        // TODO: Replace with actual API call to update job status in Cosmos DB
+        //var response = await Http.PutAsJsonAsync($"https://yourapi.com/jobs/{job.Id}/status", job);
+
+        // if (response.IsSuccessStatusCode)
+        if (true)
+        {
+            StateHasChanged(); // Refresh UI
+        }
+        else
+        {
+            Console.WriteLine("Failed to update job status.");
+        }
+    }
+
+    [Inject] private HttpClient Http { get; set; }
+
+    private List<Job> MockJobs()
+    {
+        return new List<Job>
+        {
+            new Job
+            {
+                Id = "1",
+                Title = "Software Developer",
+                Description = "Develop software applications using .NET Core",
+                RequiredSkills = new List<string> { "C#", ".NET Core", "SQL" },
+                CompanyName = "ABC Inc.",
+                Location = "New York, NY",
+                EmploymentType = "Full-Time",
+                Salary = 80000,
+                PostedByUserId = "12345",
+                PostedDate = DateTime.UtcNow,
+                IsActive = true
+            },
+            new Job
+            {
+                Id = "2",
+                Title = "Data Analyst",
+                Description = "Analyze data and generate reports",
+                RequiredSkills = new List<string> { "SQL", "Excel", "Power BI" },
+                CompanyName = "XYZ Corp.",
+                Location = "Los Angeles, CA",
+                EmploymentType = "Part-Time",
+                Salary = 50000,
+                PostedByUserId = "12345",
+                PostedDate = DateTime.UtcNow,
+                IsActive = true
+            }
+        };
+    }
 
 }

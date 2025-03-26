@@ -1,73 +1,104 @@
 ﻿@page "/employee-dashboard"
+
 @inject HttpClient Http
 @inject NavigationManager Navigation
-@inject SecureStorageService SecureStorage
-@inject AuthenticationStateProvider AuthenticationStateProvider
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 
-<h2>Welcome, @userName!</h2>
+<PageTitle>Skill Match Recommendations</PageTitle>
 
-@if (recommendedJobs == null)
+<h3>Job Recommendations Based on Your Skills</h3>
+
+@if (isLoading)
 {
-    <p>Loading job recommendations...</p>
+    <p>Loading recommendations...</p>
 }
-else if (recommendedJobs.Count == 0)
+else if (jobRecommendations == null || !jobRecommendations.Any())
 {
-    <p>No recommendations found. Update your profile to get better matches!</p>
+    <p>No job recommendations available. Please update your profile to improve recommendations.</p>
 }
 else
 {
-    <h3>Recommended Jobs for You</h3>
-    <ul>
-        @foreach (var job in recommendedJobs)
-        {
-            <li>
-                <strong>@job.Title</strong> - @job.Description
-            </li>
-        }
-    </ul>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Job Title</th>
+                <th>Company</th>
+                <th>Location</th>
+                <th>Matching Score (%)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var recommendation in jobRecommendations)
+            {
+                <tr>
+                    <td>@recommendation.Job.Title</td>
+                    <td>@recommendation.Job.CompanyName</td>
+                    <td>@recommendation.Job.Location</td>
+                    <td>@recommendation.MatchingScore</td>
+                    <td>
+                        @if (!recommendation.HasApplied)
+                        {
+                            <button class="btn btn-primary btn-sm" @onclick="() => ApplyJob(recommendation)">Apply</button>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Applied</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 }
 
-
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert @alertClass mt-3">@message</div>
+}
 
 @code {
-    private string userId;
-    private string userName = "User";
-    private List<Job> recommendedJobs = new();
+    private List<JobRecommendation> jobRecommendations;
+    private bool isLoading = true;
+    private string message;
+    private string alertClass; // "alert-success" or "alert-danger"
 
     protected override async Task OnInitializedAsync()
     {
+        // Call the API endpoint to get job recommendations.
+        jobRecommendations = await Http.GetFromJsonAsync<List<JobRecommendation>>("/api/ai/skills-matching");
+        isLoading = false;
+    }
 
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity.IsAuthenticated)
+    private async Task ApplyJob(JobRecommendation recommendation)
+    {
+        // Call the API endpoint to apply for the job
+        var response = await Http.PostAsJsonAsync($"/api/jobs/{recommendation.Job.Id}/apply", new { jobId = recommendation.Job.Id });
+        if (response.IsSuccessStatusCode)
         {
-            userId = user.FindFirst(c => c.Type == "sub")?.Value;
-            //userName = user.Identity.Name;
-            await FetchUserProfile(userId);
-            await FetchJobRecommendations(userId);
+            recommendation.HasApplied = true;
+            message = $"Successfully applied for {recommendation.Job.Title}.";
+            alertClass = "alert-success";
         }
         else
         {
-            Navigation.NavigateTo("/");
+            message = "Failed to apply for the job. Please try again later.";
+            alertClass = "alert-danger";
         }
     }
 
-    private async Task FetchUserProfile(string userId)
+    public class JobRecommendation
     {
-        userId = "{userId}";
-        string roleId = "{roleId}";
-        var userProfile = await Http.GetFromJsonAsync<EmployeeProfile>($"/api/user/{userId}/{roleId}");
-        if (userProfile != null)
-        {
-            userName = string.Format("{0}, { 1}", userProfile.Name.FirstName, userProfile.Name.LastName);
-        }
+        public Job Job { get; set; }
+        public int MatchingScore { get; set; } // Score in percentage (e.g., 85 means 85%)
+        public bool HasApplied { get; set; } // Indicates if the user has applied for the job
     }
 
-    private async Task FetchJobRecommendations(string userId)
+    public class Job
     {
-        userId = "{userId}";
-        recommendedJobs = await Http.GetFromJsonAsync<List<Job>>($"/api/jobs/recommend/{userId}");
+        public string Id { get; set; }
+        public string Title { get; set; }
+        public string CompanyName { get; set; }
+        public string Location { get; set; }
+        public DateTime PostedDate { get; set; }
     }
 }
