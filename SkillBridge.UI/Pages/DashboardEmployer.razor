@@ -1,49 +1,61 @@
 ﻿@page "/employer-dashboard"
-
-@using System.Net.Http.Json
+@using System.Text.Json;
+@inject IJSRuntime JS
 
 <h3>Posted Jobs</h3>
 
-@if (jobs == null)
+<table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Company</th>
+            <th>Location</th>
+            <th>Employment Type</th>
+            <th>Posted Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var job in postedJobs)
+        {
+            <tr>
+                <td>@job.Title</td>
+                <td>@job.CompanyName</td>
+                <td>@job.Location</td>
+                <td>@job.EmploymentType</td>
+                <td>@job.PostedDate.ToShortDateString()</td>
+                <td><button class="disable-button">Disable</button></td>
+                <td><button class="get-profiles-button" @onclick="() => GetProfiles(job.Id)">Get Profiles</button></td>
+            </tr>
+        }
+    </tbody>
+</table>
+<br/>
+<hr />
+
+@if (showProfiles)
 {
-    <p>Loading jobs...</p>
-}
-else if (!jobs.Any())
-{
-    <p>No jobs posted yet.</p>
-}
-else
-{
-    <table class="table">
+    <h3>List of Matching Profiles</h3>
+    <table>
         <thead>
             <tr>
-                <th>Title</th>
-                <th>Company</th>
+                <th>Name</th>
+                <th>Years of Experience</th>
                 <th>Location</th>
-                <th>Employment Type</th>
-                <th>Posted Date</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>Matching Score(%)</th>
+                <th>Resume</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var job in jobs)
+            @foreach (var profile in matchingProfiles)
             {
                 <tr>
-                    <td>@job.Title</td>
-                    <td>@job.CompanyName</td>
-                    <td>@job.Location</td>
-                    <td>@job.EmploymentType</td>
-                    <td>@job.PostedDate.ToShortDateString()</td>
-                    <td>
-                        <button class="btn @(job.IsActive ? "btn-danger" : "btn-success") btn-sm"
-                        @onclick="() => ToggleJobStatus(job)">
-                            @(job.IsActive ? "Disable" : "Enable")
-                        </button>
-                    </td>
-                    <td>
-                        <button class="btn-sm" @onclick="()=> SearchProfile(job.Id)"> </button>
-                    </td>
+                    <td>@profile.Name</td>
+                    <td>@profile.YearsOfExperience Years</td>
+                    <td>@(profile.IsLocalCandidate ? "Local" : "Non-Local")</td>
+                    <td> Score: @profile.SkillsScore</td>
+                    <td><a href="@profile.ResumeUrl" download>Download Resume</a></td>
                 </tr>
             }
         </tbody>
@@ -51,78 +63,32 @@ else
 }
 
 @code {
-    private List<Job> jobs;
-
-    protected override async Task OnInitializedAsync()
+    private List<Job> postedJobs = new()
     {
-        await LoadJobs();
-    }
+        new Job { Id = "1", Title = "Software Developer", CompanyName = "ABC Inc.", Location = "New York, NY", EmploymentType = "Full-Time", PostedDate = DateTime.Now },
+        new Job { Id = "2", Title = "Data Analyst", CompanyName = "XYZ Corp.", Location = "Los Angeles, CA", EmploymentType = "Part-Time", PostedDate = DateTime.Now }
+    };
 
-    private async Task LoadJobs()
+    private bool showProfiles = false;
+    private List<Profile> matchingProfiles = new();
+
+    private void GetProfiles(string jobId)
     {
-        // TODO: Replace with actual API call
-        //jobs = await Http.GetFromJsonAsync<List<Job>>("https://yourapi.com/jobs") ?? MockJobs();
-        jobs = MockJobs();
-    }
-
-    private async Task ToggleJobStatus(Job job)
-    {
-        job.IsActive = !job.IsActive;
-
-        // TODO: Replace with actual API call to update job status in Cosmos DB
-        //var response = await Http.PutAsJsonAsync($"https://yourapi.com/jobs/{job.Id}/status", job);
-
-        // if (response.IsSuccessStatusCode)
-        if (true)
+        // Simulate fetching profiles (Replace with API call)
+        matchingProfiles = new List<Profile>
         {
-            StateHasChanged(); // Refresh UI
-        }
-        else
-        {
-            Console.WriteLine("Failed to update job status.");
-        }
-    }
-
-    [Inject] private HttpClient Http { get; set; }
-
-    private void SearchProfile(string JobId)
-    { 
-    
-    }
-
-    private List<Job> MockJobs()
-    {
-        return new List<Job>
-        {
-            new Job
-            {
-                Id = "1",
-                Title = "Software Developer",
-                Description = "Develop software applications using .NET Core",
-                RequiredSkills = new List<string> { "C#", ".NET Core", "SQL" },
-                CompanyName = "ABC Inc.",
-                Location = "New York, NY",
-                EmploymentType = "Full-Time",
-                Salary = 80000,
-                PostedByUserId = "12345",
-                PostedDate = DateTime.UtcNow,
-                IsActive = true
-            },
-            new Job
-            {
-                Id = "2",
-                Title = "Data Analyst",
-                Description = "Analyze data and generate reports",
-                RequiredSkills = new List<string> { "SQL", "Excel", "Power BI" },
-                CompanyName = "XYZ Corp.",
-                Location = "Los Angeles, CA",
-                EmploymentType = "Part-Time",
-                Salary = 50000,
-                PostedByUserId = "12345",
-                PostedDate = DateTime.UtcNow,
-                IsActive = true
-            }
+            new Profile { Name = "John Doe", YearsOfExperience = 5, IsLocalCandidate = true, SkillsScore = 85, ResumeUrl = "#" },
+            new Profile { Name = "Jane Smith", YearsOfExperience = 3, IsLocalCandidate = false, SkillsScore = 78, ResumeUrl = "#" }
         };
+        showProfiles = true;
     }
 
+    private class Profile
+    {
+        public string Name { get; set; }
+        public int YearsOfExperience { get; set; }
+        public bool IsLocalCandidate { get; set; }
+        public int SkillsScore { get; set; }
+        public string ResumeUrl { get; set; }
+    }
 }

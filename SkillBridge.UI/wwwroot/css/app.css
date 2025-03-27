@@ -154,3 +154,41 @@ code {
             background-color: #d96c1e;
         }
 
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.disable-button {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 5px;
+}
+
+.get-profiles-button {
+    background-color: darkblue;
+    color: white;
+    border: none;
+    padding: 5px;
+}
+
+.profile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.profile-card {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+}
