@@ -36,15 +36,13 @@ else
                     <td>@job.EmploymentType</td>
                     <td>@job.PostedDate.ToShortDateString()</td>
                     <td>
-                        <span class="badge @(job.IsActive ? "bg-success" : "bg-danger")">
-                            @(job.IsActive ? "Active" : "Inactive")
-                        </span>
-                    </td>
-                    <td>
                         <button class="btn @(job.IsActive ? "btn-danger" : "btn-success") btn-sm"
-                                @onclick="() => ToggleJobStatus(job)">
+                        @onclick="() => ToggleJobStatus(job)">
                             @(job.IsActive ? "Disable" : "Enable")
                         </button>
+                    </td>
+                    <td>
+                        <button class="btn-sm" @onclick="()=> SearchProfile(job.Id)"> </button>
                     </td>
                 </tr>
             }
@@ -86,6 +84,11 @@ else
     }
 
     [Inject] private HttpClient Http { get; set; }
+
+    private void SearchProfile(string JobId)
+    { 
+    
+    }
 
     private List<Job> MockJobs()
     {

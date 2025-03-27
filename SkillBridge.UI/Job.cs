@@ -19,4 +19,12 @@ namespace SkillBridge.UI
 
     }
 
+
+    public class JobRecommendation
+    {
+        public Job Job { get; set; }
+        public int MatchingScore { get; set; } // Score in percentage (e.g., 85 means 85%)
+        public bool HasApplied { get; set; } // Indicates if the user has applied for the job
+    }
+
 }

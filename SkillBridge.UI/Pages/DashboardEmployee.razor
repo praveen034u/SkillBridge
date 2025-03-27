@@ -65,8 +65,12 @@ else
     protected override async Task OnInitializedAsync()
     {
         // Call the API endpoint to get job recommendations.
-        jobRecommendations = await Http.GetFromJsonAsync<List<JobRecommendation>>("/api/ai/skills-matching");
+        jobRecommendations = MockJobRecommendation();//await Http.GetFromJsonAsync<List<JobRecommendation>>("/api/ai/skills-matching");
         isLoading = false;
+
+        // Mock job recommendations for testing purposes
+
+
     }
 
     private async Task ApplyJob(JobRecommendation recommendation)
@@ -86,19 +90,50 @@ else
         }
     }
 
-    public class JobRecommendation
-    {
-        public Job Job { get; set; }
-        public int MatchingScore { get; set; } // Score in percentage (e.g., 85 means 85%)
-        public bool HasApplied { get; set; } // Indicates if the user has applied for the job
-    }
 
-    public class Job
-    {
-        public string Id { get; set; }
-        public string Title { get; set; }
-        public string CompanyName { get; set; }
-        public string Location { get; set; }
-        public DateTime PostedDate { get; set; }
+    private List<JobRecommendation> MockJobRecommendation()
+    { 
+        return new List<JobRecommendation>
+                {
+                    new JobRecommendation
+                    {
+                        Job = new Job
+                        {
+                            Id = "1",
+                            Title = "Software Engineer",
+                            CompanyName = "Tech Corp",
+                            Location = "New York, NY",
+                            Description = "Develop and maintain software applications.",
+                            RequiredSkills = new List<string> { "C#", "ASP.NET", "SQL" },
+                            EmploymentType = "Full-time",
+                            Salary = 90000,
+                            PostedByUserId = "user123",
+                            PostedDate = DateTime.Now.AddDays(-10),
+                            IsActive = true
+                        },
+                        MatchingScore = 85,
+                        HasApplied = false
+                    },
+                    new JobRecommendation
+                    {
+                        Job = new Job
+                        {
+                            Id = "2",
+                            Title = "Data Analyst",
+                            CompanyName = "Data Insights",
+                            Location = "San Francisco, CA",
+                            Description = "Analyze and interpret complex data sets.",
+                            RequiredSkills = new List<string> { "Python", "SQL", "Tableau" },
+                            EmploymentType = "Contract",
+                            Salary = 70000,
+                            PostedByUserId = "user456",
+                            PostedDate = DateTime.Now.AddDays(-5),
+                            IsActive = true
+                        },
+                        MatchingScore = 90,
+                        HasApplied = false
+                    }
+                };
+        isLoading = false;
     }
 }

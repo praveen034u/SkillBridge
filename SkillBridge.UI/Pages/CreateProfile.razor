@@ -1,4 +1,5 @@
 ﻿@page "/create-profile"
+@using System.Text.Json
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
@@ -62,7 +63,31 @@
 
                     <div class="mb-3">
                         <label class="form-label">Upload Resume</label>
+                        <div>
+                            <label>Upload Resume</label>
+                            <input type="file" @onchange="UploadResume" />
+                            <button type="button" class="btn btn-primary" @onclick="OpenPopup">Upload </button>
+                        </div>
 
+                        @if (showModal)
+                        {
+                            <div class="modal">
+                                <div class="modal-content">
+                                    <h4>Document Intelligence Extracted Skills</h4>
+                                    <div>
+                                        @foreach (var skill in extractedSkills)
+                                        {
+                                            <div>
+                                                <input type="text" value="@skill" />
+                                                <button @onclick="() => RemoveSkill(skill)">X</button>
+                                            </div>
+                                        }
+                                    </div>
+                                    <button @onclick="ApproveSkills">Approve</button>
+                                    <button @onclick="CloseModal">Deny</button>
+                                </div>
+                            </div>
+                        }
                         @* todo for Jitendra  *@
 
                         @* <InputFile class="form-control" @bind-Value="userProfile.EmployeeProfile.Resume" required /> *@
@@ -176,6 +201,44 @@
 </div>
 
 @code {
+
+    private bool showModal = false;
+    private List<string> extractedSkills = new();
+
+    private async Task UploadResume(ChangeEventArgs e)
+    {
+        var file = e.Value as IBrowserFile;
+        if (file != null)
+        {
+            // Simulate skill extraction from the resume (Replace this with actual API call)
+            extractedSkills = new List<string> { "C#", ".NET", "Blazor", "Azure" };
+            showModal = true;
+        }
+    }
+
+    private void RemoveSkill(string skill)
+    {
+        extractedSkills.Remove(skill);
+    }
+
+    private void ApproveSkills()
+    {
+        // Logic to save skills
+        showModal = false;
+    }
+
+    private void OpenPopup()
+    {
+        // Simulate skill extraction from the resume (Replace this with actual API call)
+        extractedSkills = new List<string> { "C#", ".NET", "Blazor", "Azure" };
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
     private string UserRole;
     private UserProfile userProfile = new UserProfile() { EmployeeProfile= new EmployeeProfile(), EmployerProfile= new EmployerProfile()};
 
@@ -205,35 +268,29 @@
     private async Task SubmitProfile()
     {
         SecureStorage.SetItemAsync("user_role", UserRole);
-        if (UserRole == "Employee")
-        {
-            Navigation.NavigateTo("/employee-dashboard", forceLoad: true);
-        }
-        else if (UserRole == "Employer")
-        {
-            Navigation.NavigateTo("/employer-dashboard", forceLoad: true);
-        }
-        else
-        {
-            Navigation.NavigateTo("/", forceLoad: true);
-        }
 
         // var accessToken = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "access_token");
 
-        //var response = await Http.PostAsJsonAsync("/api/profile", userProfile);
-        // if (response.IsSuccessStatusCode)
-        // {
-        //     await JSRuntime.InvokeVoidAsync("localStorage.setItem", "user_profile", System.Text.Json.JsonSerializer.Serialize(userProfile));
+        var response = await Http.PostAsJsonAsync("/api/userprofiles/CreateProfile", userProfile);
+        if (response.IsSuccessStatusCode)
+        {
+            var userProfileStr = await response.Content.ReadAsStringAsync();
+            userProfile = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(userProfileStr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "sb_user_profile", userProfileStr);
 
-        //     if (UserRole == "Employee")
-        //     {
-        //         Navigation.NavigateTo("/employee-dashboard", forceLoad: true);
-        //     }
-        //     else if (UserRole == "Employer")
-        //     {
-        //         Navigation.NavigateTo("/employer-dashboard", forceLoad: true);
-        //     }
-        // }
+            if (UserRole == "Employee")
+            {
+                Navigation.NavigateTo("/employee-dashboard", forceLoad: true);
+            }
+            else if (UserRole == "Employer")
+            {
+                Navigation.NavigateTo("/employer-dashboard", forceLoad: true);
+            }
+            else
+            {
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+        }
     }
 
     private void AddSkill()
