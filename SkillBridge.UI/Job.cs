@@ -13,7 +13,9 @@ namespace SkillBridge.UI
         public int MinExperience { get; set; }
 
         public List<string> Skills { get; set; } = new();
-       
+
+        public List<string> RequiredSkills { get; set; } = new();
+
         public string Location { get; set; }
 
         public string Company { get; set; } //employer name
