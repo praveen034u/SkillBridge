@@ -11,13 +11,13 @@
     <ValidationSummary />
 
     <div class="mb-3">
-        <label for="location">Location:</label>
-        <InputText id="location" class="form-control" @bind-Value="searchModel.Location" placeholder="Enter location..." />
+        <label for="skills">Skills (comma-separated):</label>
+        <InputText id="skills" class="form-control" @bind-Value="searchModel.Skills" placeholder="e.g. carpenter,cook,plumber" />
     </div>
 
     <div class="mb-3">
-        <label for="skills">Skills (comma-separated):</label>
-        <InputText id="skills" class="form-control" @bind-Value="searchModel.Skills" placeholder="e.g., C#, Blazor, Azure" />
+        <label for="location">Location:</label>
+        <InputText id="location" class="form-control" @bind-Value="searchModel.Location" placeholder="Enter location..." />
     </div>
 
     <div class="mb-3">
@@ -25,13 +25,13 @@
         <InputText id="employer" class="form-control" @bind-Value="searchModel.EmployerName" placeholder="Enter employer name..." />
     </div>
 
-    <div class="mb-3">
-        <label for="sort">Sort By Date:</label>
-        <select id="sort" class="form-control" @bind="searchModel.SortByDate">
-            <option value="desc">Newest First</option>
-            <option value="asc">Oldest First</option>
-        </select>
-    </div>
+    @*     <div class="mb-3">
+<label for="sort">Sort By Date:</label>
+<select id="sort" class="form-control" @bind="searchModel.SortByDate">
+<option value="desc">Newest First</option>
+<option value="asc">Oldest First</option>
+</select>
+</div> *@
 
     <button type="submit" class="btn btn-primary">Search Jobs</button>
 </EditForm>
@@ -54,7 +54,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var job in jobs)
+                @foreach (var job in jobs.OrderByDescending(x => x.PostedDate))
                 {
                     <tr>
                         <td>@job.Title</td>
@@ -81,12 +81,11 @@
     {
         isSearching = true;
         // Build query parameters (make sure to encode values)
-        var query = $"?location={Uri.EscapeDataString(searchModel.Location ?? string.Empty)}" +
-                    $"&skills={Uri.EscapeDataString(searchModel.Skills ?? string.Empty)}" +
-                    $"&employerName={Uri.EscapeDataString(searchModel.EmployerName ?? string.Empty)}" +
-                    $"&sortByDate={searchModel.SortByDate}";
-        // Call the API endpoint for job search
-        jobs = await Http.GetFromJsonAsync<List<Job>>($"api/jobs/search{query}");
+        var query = $"?searchbyLocation={Uri.EscapeDataString(searchModel.Location ?? string.Empty)}" +
+                    $"&searchbySkill={Uri.EscapeDataString(searchModel.Skills ?? string.Empty)}" +
+                    $"&searchbyEmployerName={Uri.EscapeDataString(searchModel.EmployerName ?? string.Empty)}"; // +$"&sortByDate={searchModel.SortByDate}";
+                                                                                                               // Call the API endpoint for job search
+        jobs = await Http.GetFromJsonAsync<List<Job>>($"api/search{query}");
         isSearching = false;
     }
 

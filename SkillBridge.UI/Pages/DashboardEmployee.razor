@@ -2,6 +2,8 @@
 
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject SecureStorageService SecureStorage
+
 
 <PageTitle>Skill Match Recommendations</PageTitle>
 
@@ -61,11 +63,13 @@ else
     private bool isLoading = true;
     private string message;
     private string alertClass; // "alert-success" or "alert-danger"
-
+    private string userId;
     protected override async Task OnInitializedAsync()
     {
         // Call the API endpoint to get job recommendations.
-        jobRecommendations = MockJobRecommendation();//await Http.GetFromJsonAsync<List<JobRecommendation>>("/api/ai/skills-matching");
+        userId = await SecureStorage.GetUserIdAsync();
+        // Call the API endpoint to get job recommendations.
+        jobRecommendations = await Http.GetFromJsonAsync<List<JobRecommendation>>("/jobs/recommend/{userId}");
         isLoading = false;
 
         // Mock job recommendations for testing purposes
@@ -75,18 +79,25 @@ else
 
     private async Task ApplyJob(JobRecommendation recommendation)
     {
-        // Call the API endpoint to apply for the job
-        var response = await Http.PostAsJsonAsync($"/api/jobs/{recommendation.Job.Id}/apply", new { jobId = recommendation.Job.Id });
-        if (response.IsSuccessStatusCode)
+        var userProfileJson = await SecureStorage.GetItemAsync("sb_user_profile");
+        if (userProfileJson != null)
         {
-            recommendation.HasApplied = true;
-            message = $"Successfully applied for {recommendation.Job.Title}.";
-            alertClass = "alert-success";
-        }
-        else
-        {
-            message = "Failed to apply for the job. Please try again later.";
-            alertClass = "alert-danger";
+            var userProfile = await SecureStorage.GetUserProfileAsync(userProfileJson);
+			userProfile.EmployeeProfile.AppliedJobs.Add(recommendation.Job.Id);
+
+            // Call the API endpoint to apply for the job
+            var response = await Http.PutAsJsonAsync($"/api/userprofile", userProfile);
+            if (response.IsSuccessStatusCode)
+            {
+                recommendation.HasApplied = true;
+                message = $"Successfully applied for {recommendation.Job.Title}.";
+                alertClass = "alert-success";
+            }
+            else
+            {
+                message = "Failed to apply for the job. Please try again later.";
+                alertClass = "alert-danger";
+            }
         }
     }
 
