@@ -35,11 +35,6 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <InputText class="form-control" @bind-Value="userProfile.Email" required />
-                </div>
-
-                <div class="mb-3">
                     <label class="form-label">Phone Number</label>
                     <InputText class="form-control" @bind-Value="userProfile.PhoneNumber" required />
                 </div>
@@ -189,12 +184,19 @@
                     </div>
                 }
 
-                <button type="submit" class="btn btn-primary w-100">Create Profile</button>
+                @if (!isUserProfileFound)
+                {
+                    <button type="submit" class="btn btn-primary w-100">Create Profile</button>
 
-                <!-- Option to go back and change role -->
-                <div class="text-center mt-3">
-                    <a href="javascript:void(0);" @onclick="ResetRole">Change Role</a>
-                </div>
+                    <!-- Option to go back and change role -->
+                    <div class="text-center mt-3">
+                        <a href="javascript:void(0);" @onclick="ResetRole">Change Role</a>
+                    </div>
+                }
+                else
+                {
+                    <button type="submit" class="btn btn-primary w-100">Update Profile</button>
+                }
             </div>
         </EditForm>
     }
@@ -204,6 +206,20 @@
 
     private bool showModal = false;
     private List<string> extractedSkills = new();
+    private string UserRole;
+    private bool isUserProfileFound;
+
+    protected override async Task OnInitializedAsync()
+    { 
+        isUserProfileFound = false;
+        var userProfileJson = await SecureStorage.GetItemAsync("sb_user_profile");
+		if (userProfileJson != null)
+		{
+            userProfile = await SecureStorage.GetUserProfileAsync(userProfileJson);
+			UserRole = await SecureStorage.GetItemAsync("user_role");
+			isUserProfileFound =true;
+		}
+    }
 
     private async Task UploadResume(ChangeEventArgs e)
     {
@@ -239,7 +255,7 @@
         showModal = false;
     }
 
-    private string UserRole;
+    
     private UserProfile userProfile = new UserProfile() { EmployeeProfile= new EmployeeProfile(), EmployerProfile= new EmployerProfile()};
 
     private string certifications { get => string.Join(", ", userProfile.EmployeeProfile.Certifications); set => userProfile.EmployeeProfile.Certifications = value.Split(',').Select(c => c.Trim()).ToList(); }
@@ -247,16 +263,7 @@
     private async Task SelectRole(string role)
     {
         UserRole = role;
-
         userProfile.Role = role;
-
-        // Fetch existing profile (if any)
-        // var profileJson = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "user_profile");
-        // if (!string.IsNullOrEmpty(profileJson))
-        // {
-        //     userProfile = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(profileJson);
-        //     userProfile.Role = role;
-        // }
     }
 
     private void ResetRole()
@@ -267,17 +274,17 @@
 
     private async Task SubmitProfile()
     {
-        SecureStorage.SetItemAsync("user_role", UserRole);
-
         // var accessToken = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "access_token");
-
+        userProfile.Email = await SecureStorage.GetUserIdAsync();
         var response = await Http.PostAsJsonAsync("/api/userprofiles/CreateProfile", userProfile);
         if (response.IsSuccessStatusCode)
         {
-            var userProfileStr = await response.Content.ReadAsStringAsync();
-            userProfile = System.Text.Json.JsonSerializer.Deserialize<UserProfile>(userProfileStr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "sb_user_profile", userProfileStr);
-
+            var userProfileJson = await response.Content.ReadAsStringAsync();
+            userProfile = await SecureStorage.GetUserProfileAsync(userProfileJson);
+            
+            SecureStorage.SetItemAsync("sb_user_profile", userProfileJson);
+            SecureStorage.SetItemAsync("user_role", userProfile.Role);
+          
             if (UserRole == "Employee")
             {
                 Navigation.NavigateTo("/employee-dashboard", forceLoad: true);

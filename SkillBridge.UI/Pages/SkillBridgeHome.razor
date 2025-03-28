@@ -3,6 +3,7 @@
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 @inject SecureStorageService SecureStorage
+@inject HttpClient HttpClient
 
 <PageTitle>SkillBridgeHome</PageTitle>
 
@@ -57,22 +58,23 @@
     <!-- Call-to-Action Section -->
     <section class="text-center bg-secondary text-white py-5">
         <h2 class="fw-bold">Start Your Journey Today!</h2>
-       @*  <button @onclick="ShowLoginWidget" class="btn btn-dark btn-lg mt-3">Sign Up Now</button> *@
+        @*  <button @onclick="ShowLoginWidget" class="btn btn-dark btn-lg mt-3">Sign Up Now</button> *@
     </section>
 </div>
 
 @code {
 
     private static NavigationManager _navigationManager;
-	private static SecureStorageService _secureStorage;
-	private static IJSRuntime _jsRuntime;
-    
+    private static SecureStorageService _secureStorage;
+    private static IJSRuntime _jsRuntime;
+    private static HttpClient _httpClient;
 
     protected override void OnInitialized()
     {
         _navigationManager = Navigation;
-		_secureStorage = SecureStorage;
-		_jsRuntime = JSRuntime;
+        _secureStorage = SecureStorage;
+        _jsRuntime = JSRuntime;
+        _httpClient = HttpClient;
     }
 
     private async Task ShowLoginWidget()
@@ -87,18 +89,17 @@
 
         // Retrieve token from localStorage (set by JavaScript)
         var accessToken = await _secureStorage.GetItemAsync("access_token");
-        var userProfileJson = await _secureStorage.GetItemAsync("user_profile");
+        var userSecureProfileJson = await _secureStorage.GetItemAsync("user_profile");
 
-        if (string.IsNullOrEmpty(userProfileJson))
+        if (string.IsNullOrEmpty(userSecureProfileJson) && string.IsNullOrEmpty(accessToken))
         {
             Console.WriteLine("User profile missing in local storage.");
-            _navigationManager.NavigateTo("/create-profile", forceLoad: true);
+            _navigationManager.NavigateTo("/", forceLoad: true);
             return;
         }
 
-        var userProfile = await _secureStorage.GetUserProfileAsync(userProfileJson);
-        string userId = userProfile?.Id ?? string.Empty;
-
+        string userId = await _secureStorage.GetSecureUserIdAsync(userSecureProfileJson);
+        await _secureStorage.SetItemAsync("user_id", userId);
         if (string.IsNullOrEmpty(userId))
         {
             Console.WriteLine("User ID not found, redirecting to Create Profile.");
@@ -106,11 +107,10 @@
             return;
         }
 
-         // Check profile from API
-         var httpClient = new HttpClient { BaseAddress = new Uri("https://your-api.com") };
-         //httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        // Check profile from API
+        //httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-         var response = await httpClient.GetAsync($"/profile/{userId}");
+        var response = await _httpClient.GetAsync($"api/userprofiles/{userId}");
         if (!response.IsSuccessStatusCode)
         {
             Console.WriteLine("Profile not found, redirecting to Create Profile.");
@@ -118,8 +118,8 @@
             return;
         }
 
-        var profileData = await response.Content.ReadAsStringAsync();
-        var profile = await _secureStorage.GetUserProfileAsync(userProfileJson);
+        var profileJsonData = await response.Content.ReadAsStringAsync();
+        var profile = await _secureStorage.GetUserProfileAsync(profileJsonData);
 
         if (profile == null)
         {
@@ -128,6 +128,7 @@
             return;
         }
 
+        _secureStorage.SetItemAsync("user_role", profile.Role);
         // Redirect based on role
         if (profile.Role == "Employee")
         {
@@ -139,25 +140,12 @@
             Console.WriteLine("Redirecting to Employer Dashboard.");
             _navigationManager.NavigateTo("/employer-dashboard", forceLoad: true);
         }
-        if (!string.IsNullOrEmpty(accessToken))
-        {
-           // await _secureStorage.SetItemAsync("access_token", accessToken);
-            Console.WriteLine("Token stored securely!");
-
-            // Redirect user after successful login
-            _navigationManager.NavigateTo("/dashboard", forceLoad: true);
-        }
         else
         {
             Console.WriteLine("Unknown role, redirecting to Create Profile.");
             _navigationManager.NavigateTo("/create-profile", forceLoad: true);
         }
-        // else
-        // {
-        //     Console.WriteLine("Error: No token found!");
-        // }
-
-      
+           
     }
 
     [JSInvokable]

@@ -37,9 +37,36 @@ public class SecureStorageService
         return userId;
     }
 
+
+    public async Task<string> GetUserIdAsync()
+    {
+        return await _jsRuntime.InvokeAsync<string>("secureStorage.getItem", "user_id");
+    }
+
+    public async Task<string> GetSecureUserIdAsync(string userProfileJson)
+    {
+        
+        var userSecureProfile= JsonSerializer.Deserialize<UserSecureProfile>(userProfileJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        return userSecureProfile.Name;
+
+    }
+
     public async Task<UserProfile> GetUserProfileAsync(string userProfileJson)
     {
-        return new UserProfile() { EmployeeProfile = JsonSerializer.Deserialize<EmployeeProfile>(userProfileJson) };
+
+        var userProfile = JsonSerializer.Deserialize<UserProfile>(userProfileJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        return userProfile;
+
+    }
+
+    public async Task<UserProfile> GetSecureUserProfileAsync(string userProfileJson)
+    {
+
+        var userSecureProfile = JsonSerializer.Deserialize<UserProfile>(userProfileJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        return userSecureProfile;
 
     }
 }

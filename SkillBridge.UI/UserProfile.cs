@@ -65,4 +65,11 @@
         public string ResumeUrl { get; set; } = string.Empty;
         public List<string> ExtractedSkills { get; set; } = new();
     }
+
+    public class UserSecureProfile
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        // Other properties...
+    }
 }
