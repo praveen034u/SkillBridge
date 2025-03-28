@@ -96,7 +96,11 @@
 
                     <div class="mb-3">
                         <div class="mb-3">
+                             <div class="mb-2" hidden="@(string.IsNullOrEmpty(extSkillsText))">
+                                <input type="text" id="extskills" class="form-control" @bind="extSkillsText" readonly />
+                            </div>
                             <label class="form-label">Skills</label>
+                           
                             @foreach (var skill in userProfile.EmployeeProfile.Skills)
                             {
 
@@ -256,10 +260,13 @@
     {
         extractedSkills.Remove(skill);
     }
-
+    private string extSkillsText = "";
     private void ApproveSkills()
     {
         // Logic to save skills
+        // extSkillsText = string.Join(", ", userProfile.EmployeeProfile.Skills.Select(x => x.Name));
+        extSkillsText = string.Join(", ", extractedSkills);
+
         showModal = false;
     }
 
