@@ -1,4 +1,6 @@
 ﻿@page "/post-job"
+@inject HttpClient Http
+@inject SecureStorageService SecureStorage
 
 @using System.ComponentModel.DataAnnotations
 
@@ -14,7 +16,7 @@
 
     <div>
         <label>Company Name:</label>
-        <InputText @bind-Value="job.CompanyName" class="form-control" required />
+        <InputText @bind-Value="job.Company" class="form-control" required />
     </div>
 
     <div>
@@ -28,13 +30,19 @@
     </div>
 
     <div>
+        <label>Required Experience(Years):</label>
+        <InputNumber @bind-Value="job.MinExperience" class="form-control" rows="4" required />
+    </div>
+
+
+    <div>
         <label>Location:</label>
         <InputText @bind-Value="job.Location" class="form-control" />
     </div>
 
     <div>
         <label>Employment Type:</label>
-        <select @bind="job.EmploymentType" class="form-control">
+        <select @bind="job.JobType" class="form-control">
             <option value="Full-Time">Full-Time</option>
             <option value="Part-Time">Part-Time</option>
             <option value="Internship">Internship</option>
@@ -61,18 +69,16 @@
     private string requiredSkillsInput = "";
     private bool isJobPosted = false;
 
-    private void HandleJobPost()
+    private async void HandleJobPost()
     {
         // Convert skills input into list
-        job.RequiredSkills = requiredSkillsInput.Split(',', StringSplitOptions.RemoveEmptyEntries)
+        job.Skills = requiredSkillsInput.Split(',', StringSplitOptions.RemoveEmptyEntries)
                                                 .Select(s => s.Trim())
                                                 .ToList();
-
-        job.Id = Guid.NewGuid().ToString(); // Assign unique ID
-        job.PostedByUserId = "12345"; // Replace with logged-in user ID
+		job.EmployerId = await SecureStorage.GetUserIdAsync();
         job.PostedDate = DateTime.UtcNow;
+        var response = await Http.PostAsJsonAsync("/api/Jobs/post", job);
 
-        // TODO: Send `job` data to API for saving in Cosmos DB
         Console.WriteLine($"Job '{job.Title}' posted successfully!");
 
         isJobPosted = true;

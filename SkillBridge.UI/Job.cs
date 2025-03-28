@@ -6,12 +6,19 @@ namespace SkillBridge.UI
     public class Job
     {
         public string Id { get; set; }
+
+        public string EmployerId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
-        public List<string> RequiredSkills { get; set; } = new();
-        public string CompanyName { get; set; } //employer name
+        public int MinExperience { get; set; }
+
+        public List<string> Skills { get; set; } = new();
+       
         public string Location { get; set; }
-        public string EmploymentType { get; set; }
+
+        public string Company { get; set; } //employer name
+
+        public string JobType { get; set; }
         public decimal Salary { get; set; }
         public string PostedByUserId { get; set; }
         public DateTime PostedDate { get; set; } //created date

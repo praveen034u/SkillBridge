@@ -21,9 +21,9 @@
         {
             <tr>
                 <td>@job.Title</td>
-                <td>@job.CompanyName</td>
+                <td>@job.Company</td>
                 <td>@job.Location</td>
-                <td>@job.EmploymentType</td>
+                <td>@job.JobType</td>
                 <td>@job.PostedDate.ToShortDateString()</td>
                 <td><button class="disable-button">Disable</button></td>
                 <td><button class="get-profiles-button" @onclick="() => GetProfiles(job.Id)">Get Profiles</button></td>
@@ -65,8 +65,8 @@
 @code {
     private List<Job> postedJobs = new()
     {
-        new Job { Id = "1", Title = "Software Developer", CompanyName = "ABC Inc.", Location = "New York, NY", EmploymentType = "Full-Time", PostedDate = DateTime.Now },
-        new Job { Id = "2", Title = "Data Analyst", CompanyName = "XYZ Corp.", Location = "Los Angeles, CA", EmploymentType = "Part-Time", PostedDate = DateTime.Now }
+        new Job { Id = "1", Title = "Software Developer", Company = "ABC Inc.", Location = "New York, NY", JobType = "Full-Time", PostedDate = DateTime.Now },
+        new Job { Id = "2", Title = "Data Analyst", Company = "XYZ Corp.", Location = "Los Angeles, CA", JobType = "Part-Time", PostedDate = DateTime.Now }
     };
 
     private bool showProfiles = false;

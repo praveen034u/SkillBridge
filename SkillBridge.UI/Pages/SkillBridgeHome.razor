@@ -127,8 +127,9 @@
             _navigationManager.NavigateTo("/create-profile", forceLoad: true);
             return;
         }
-
+        _secureStorage.SetItemAsync("sb_user_profile", profileJsonData);
         _secureStorage.SetItemAsync("user_role", profile.Role);
+
         // Redirect based on role
         if (profile.Role == "Employee")
         {
