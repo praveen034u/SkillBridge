@@ -69,7 +69,7 @@ else
         // Call the API endpoint to get job recommendations.
         userId = await SecureStorage.GetUserIdAsync();
         // Call the API endpoint to get job recommendations.
-        jobRecommendations = await Http.GetFromJsonAsync<List<JobRecommendation>>("/jobs/recommend/{userId}");
+        jobRecommendations = await Http.GetFromJsonAsync<List<JobRecommendation>>($"/jobs/recommend/{userId}");
         isLoading = false;
 
         // Mock job recommendations for testing purposes
