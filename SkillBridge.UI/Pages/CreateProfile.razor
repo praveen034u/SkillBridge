@@ -244,7 +244,7 @@
                 message = "File upload failed.";
             }
             var responseResumeJson = await response.Content.ReadAsStringAsync();
-            var responseResume = JsonSerializer.Deserialize<dynamic>(responseResumeJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var responseResume = JsonSerializer.Deserialize<Resume>(responseResumeJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             userProfile.EmployeeProfile.ResumeUrl = responseResume.ResumeUrl;
             extractedSkills = responseResume.extractedSkills;
             showModal = extractedSkills.Count > 0;
@@ -354,6 +354,10 @@
         // close the popup
     }
 
-    
+    public class Resume
+    {
+		public string ResumeUrl { get; set; } = string.Empty;
+        public List<string> extractedSkills { get; set; }=  new List<string>(); 
+    }   
 
 }
