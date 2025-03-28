@@ -1,6 +1,8 @@
 ﻿@page "/employer-dashboard"
 @using System.Text.Json;
 @inject IJSRuntime JS
+@inject HttpClient Http
+@inject SecureStorageService SecureStorage
 
 <h3>Posted Jobs</h3>
 
@@ -51,11 +53,15 @@
             @foreach (var profile in matchingProfiles)
             {
                 <tr>
-                    <td>@profile.Name</td>
+                    <td>@profile.Name.FirstName @profile.Name.LastName</td>
                     <td>@profile.YearsOfExperience Years</td>
                     <td>@(profile.IsLocalCandidate ? "Local" : "Non-Local")</td>
-                    <td> Score: @profile.SkillsScore</td>
-                    <td><a href="@profile.ResumeUrl" download>Download Resume</a></td>
+                    <td>Score: @profile.MatchScore.ToString("F2")</td>
+                    <td>
+                        <div hidden="@(string.IsNullOrEmpty(profile.ResumeUrl))">
+                        <a href="@profile.ResumeUrl" download>Download Resume</a>
+                       </div>    
+                    </td>
                 </tr>
             }
         </tbody>
@@ -63,32 +69,56 @@
 }
 
 @code {
-    private List<Job> postedJobs = new()
-    {
-        new Job { Id = "1", Title = "Software Developer", Company = "ABC Inc.", Location = "New York, NY", JobType = "Full-Time", PostedDate = DateTime.Now },
-        new Job { Id = "2", Title = "Data Analyst", Company = "XYZ Corp.", Location = "Los Angeles, CA", JobType = "Part-Time", PostedDate = DateTime.Now }
-    };
+	private List<Job> postedJobs = new();
+	// private List<Job> postedJobs = new()
+    // {
+    //     new Job { Id = "1", Title = "Software Developer", Company = "ABC Inc.", Location = "New York, NY", JobType = "Full-Time", PostedDate = DateTime.Now },
+    //     new Job { Id = "2", Title = "Data Analyst", Company = "XYZ Corp.", Location = "Los Angeles, CA", JobType = "Part-Time", PostedDate = DateTime.Now }
+    // };
 
     private bool showProfiles = false;
     private List<Profile> matchingProfiles = new();
 
-    private void GetProfiles(string jobId)
-    {
-        // Simulate fetching profiles (Replace with API call)
-        matchingProfiles = new List<Profile>
-        {
-            new Profile { Name = "John Doe", YearsOfExperience = 5, IsLocalCandidate = true, SkillsScore = 85, ResumeUrl = "#" },
-            new Profile { Name = "Jane Smith", YearsOfExperience = 3, IsLocalCandidate = false, SkillsScore = 78, ResumeUrl = "#" }
-        };
-        showProfiles = true;
+	protected override async Task OnInitializedAsync()
+	{
+		await GetPostedJobs();
+	}
+
+	private async Task GetPostedJobs()
+	{
+		var employerId = await SecureStorage.GetUserIdAsync();
+		// Call the API endpoint to get posted jobs by employer
+		var response = await Http.GetAsync($"/api/Jobs/jobsbyemployerId/{employerId}");
+		if (!response.IsSuccessStatusCode)
+		{
+			Console.WriteLine("No Job found!!");
+			return;
+		}
+		var jobJsonData = await response.Content.ReadAsStringAsync();
+        postedJobs = JsonSerializer.Deserialize<List<Job>>(jobJsonData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
     }
 
-    private class Profile
+	private async void GetProfiles(string jobId)
     {
-        public string Name { get; set; }
-        public int YearsOfExperience { get; set; }
-        public bool IsLocalCandidate { get; set; }
-        public int SkillsScore { get; set; }
-        public string ResumeUrl { get; set; }
+		// Call the API endpoint to get posted jobs by employer
+        var response = await Http.GetAsync($"/api/Jobs/search?jobid={jobId}");
+        if (!response.IsSuccessStatusCode)
+		{
+			Console.WriteLine("No Job found!!");
+			return;
+		}
+		var jobJsonData = await response.Content.ReadAsStringAsync();
+        matchingProfiles = JsonSerializer.Deserialize<List<Profile>>(jobJsonData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })?? new List<Profile>();
+
+        showProfiles = matchingProfiles.Count >0;
     }
+
+    public class Profile
+    {
+		public NameModel Name { get; set; } = new NameModel();
+		public int YearsOfExperience { get; set; } = 0;
+		public bool IsLocalCandidate { get; set; } = true;
+		public double MatchScore { get; set; } = 0;
+		public string ResumeUrl { get; set; } = string.Empty;
+	}
 }
